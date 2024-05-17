@@ -39,6 +39,7 @@ class HomeActivity : AppCompatActivity(){
         Fragment_Search = Fragment_Search()
         Fragment_Search.arguments = bundle
         supportFragmentManager.beginTransaction().replace(R.id.container, Fragment_Home).commit();
+        //val current_uid = intent.getStringExtra("current_uid")
 
         homeBtn = findViewById(R.id.home)
         val intent = Intent(this, HomeActivity::class.java)

@@ -14,6 +14,11 @@
         android:theme="@style/Theme.Plant"
         tools:targetApi="31">
         <activity
+            android:name=".Fragment_FreeBoard"
+            android:exported="false" />
+        <activity android:name=".Fragment_Viewpost"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -30,18 +35,18 @@
             android:exported="true"
             android:label="홈"
             ></activity>
-        <activity
-            android:name=".CalenderActivity"
-            android:exported="true"
-            android:label="달력" />
-        <activity
-            android:name=".DiaryActivity"
-            android:exported="true"
-            android:label="다이어리" />
-        <activity
-            android:name=".PlantEnrollActivity"
-            android:exported="true"
-            android:label="식물등록" />
+<!--        <activity-->
+<!--            android:name=".CalenderActivity"-->
+<!--            android:exported="true"-->
+<!--            android:label="달력" />-->
+<!--        <activity-->
+<!--            android:name=".DiaryActivity"-->
+<!--            android:exported="true"-->
+<!--            android:label="다이어리" />-->
+<!--        <activity-->
+<!--            android:name=".PlantEnrollActivity"-->
+<!--            android:exported="true"-->
+<!--            android:label="식물등록" />-->
         <activity
             android:name=".ProfileActivity"
             android:exported="true"
