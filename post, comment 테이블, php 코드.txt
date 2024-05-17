@@ -1,0 +1,438 @@
+<post 테이블>
+create table post (
+	post_num INT AUTO_INCREMENT PRIMARY KEY,
+	board_type INT NOT NULL,
+	post_title varchar(255) NOT NULL,
+	post_content varchar(255) NOT NULL,
+    post_image LONGBLOB,
+	post_writer varchar(255) NOT NULL,
+	post_date varchar(255) NOT NULL
+) DEFAULT CHARACTER SET utf8mb4;
+
+-----------------------------------------------------------------
+
+-> post.php (게시물 가져오는 코드)
+
+<?php
+// MySQL 데이터베이스 연결 정보
+$conn = mysqli_connect("localhost","root","1234","test");
+
+// 연결 오류 체크
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// 전달받은 board_type 값
+$board_type = isset($_GET['board_type']) ? $_GET['board_type'] : null;
+
+// 게시물 데이터를 가져오는 쿼리(board_type에 따라 필터링)
+$sql = "SELECT * FROM post";
+if ($board_type !== null) {
+    $sql .= " WHERE board_type = $board_type";
+}
+
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    $response = array();
+
+    while ($row = $result->fetch_assoc()) {
+        array_push($response, $row);
+    }
+
+    // JSON 형식으로 출력
+    echo json_encode($response);
+} else {
+    echo json_encode(array("status" => "failure", "message" => "No data found"));
+}
+
+// MySQL 연결 닫기
+mysqli_close($conn);
+?>
+
+
+-> mypost.php (내 게시물 가져오기)
+
+<?php
+// MySQL 데이터베이스 연결 정보
+$servername = "localhost"; // 서버 주소
+$username = "root"; // 사용자 이름
+$password = "1234"; // 비밀번호
+$dbname = "test"; // 데이터베이스 이름
+
+// MySQL 데이터베이스 연결
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// 연결 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST 요청으로부터 게시판 타입 및 사용자 이메일 가져오기
+$board_type = $_GET['board_type'];
+$user_email = $_GET['user_email'];
+
+// 사용자가 작성한 게시물만 가져오기 위한 SQL 쿼리
+$sql = "SELECT * FROM post WHERE board_type = '$board_type' AND post_writer = '$user_email'";
+
+$result = $conn->query($sql);
+
+$response = array(); // 응답을 담을 배열 초기화
+
+if ($result->num_rows > 0) {
+    // 결과를 배열에 담기
+    while ($row = $result->fetch_assoc()) {
+        $response[] = $row;
+    }
+} 
+// JSON 형식으로 출력
+echo json_encode($response);
+
+$conn->close();
+?>
+
+
+-> insertpost.php (이미지 있는 게시물 저장)
+
+<?php
+
+// MySQL 데이터베이스에 연결
+$conn = mysqli_connect("localhost","root","1234","test");
+
+// 연결 오류가 있는지 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST 요청에서 데이터 가져오기
+$board_type = $_POST['board_type'];
+$post_title = $_POST['post_title'];
+$post_content = $_POST['post_content'];
+$post_writer = $_POST['post_writer'];
+$post_date = $_POST['post_date'];
+
+//이미지 데이터 가져오기
+$image = $_FILES['image']['tmp_name'];
+$imageData = base64_encode(file_get_contents($image));
+
+// SQL 쿼리 생성 및 실행
+$query = "INSERT INTO post (board_type, post_title, post_content, post_image, post_writer, post_date) VALUES ('$board_type', '$post_title', '$post_content', '$imageData', '$post_writer', '$post_date')";
+$result = mysqli_query($conn, $query);
+
+if($result)
+	echo "success";
+else
+	echo "failed";
+
+// MySQL 연결 종료
+mysqli_close($conn);
+?>
+
+
+-> insertpost2.php (이미지 없이 게시물 저장)
+
+<?php
+
+// MySQL 데이터베이스에 연결
+$conn = mysqli_connect("localhost","root","1234","test");
+
+// 연결 오류가 있는지 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST 요청에서 데이터 가져오기
+$board_type = $_POST['board_type'];
+$post_title = $_POST['post_title'];
+$post_content = $_POST['post_content'];
+$post_writer = $_POST['post_writer'];
+$post_date = $_POST['post_date'];
+
+// SQL 쿼리 생성 및 실행
+$query = "INSERT INTO post (board_type, post_title, post_content, post_writer, post_date) VALUES ('$board_type', '$post_title', '$post_content', '$post_writer', '$post_date')";
+$result = mysqli_query($conn, $query);
+
+if($result)
+	echo "success";
+else
+	echo "failed";
+
+// MySQL 연결 종료
+mysqli_close($conn);
+?>
+
+
+-> editpost.php
+
+<?php
+
+// MySQL 데이터베이스에 연결
+$conn = mysqli_connect("localhost","root","1234","test");
+
+// 연결 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST로 전달된 데이터 가져오기
+$post_num = $_POST['post_num'];
+$board_type = $_POST['board_type'];
+$post_title = $_POST['post_title'];
+$post_content = $_POST['post_content'];
+$post_writer = $_POST['post_writer'];
+$post_date = $_POST['post_date'];
+
+//이미지 데이터 가져오기
+$image = $_FILES['image']['tmp_name'];
+$imageData = base64_encode(file_get_contents($image));
+
+// SQL 쿼리 작성
+$sql = "UPDATE post SET post_title='$post_title', post_content='$post_content', post_image='$imageData', post_date='$post_date' WHERE post_num='$post_num'";
+
+// 쿼리 실행 및 결과 확인
+if ($conn->query($sql) === TRUE) {
+    echo "success";
+} else {
+    echo "failed: " . $conn->error;
+}
+
+// 데이터베이스 연결 종료
+$conn->close();
+?>
+
+
+-> getimage.php (이미지 가져오기)
+
+<?php
+
+if($_SERVER['REQUEST_METHOD'] == 'GET'){
+    // 이미지의 ID를 가져옵니다.
+    $id = $_GET['id'];
+    
+    // MySQL 데이터베이스에 연결
+    $conn = new mysqli("localhost", "root", "1234", "test");
+    
+    // 이미지를 데이터베이스에서 검색하는 쿼리 실행
+    $stmt = $conn->prepare("SELECT post_image FROM post WHERE post_num = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->store_result();
+    
+    // 결과 가져오기
+    $stmt->bind_result($imageData);
+    $stmt->fetch();
+    
+    // 이미지 데이터 출력
+    header("Content-type: image/jpeg");
+    echo base64_decode($imageData);
+    
+    // MySQL 연결 종료
+    $stmt->close();
+    $conn->close();
+} else {
+    echo "Invalid request method";
+}
+
+?>
+
+
+
+-> deletepost.php
+
+<?php
+    header("Content-Type: text/html;charset=UTF-8");
+    $conn = mysqli_connect("127.0.0.1","root","1234","test");
+    
+    // POST로 전달된 삭제할 데이터의 고유 식별자를 받아옵니다.
+    $post_num = $_POST['post_num']; // 삭제할 데이터의 고유 식별자
+    
+    // 삭제 쿼리를 작성합니다.
+    $query = "DELETE FROM post WHERE post_num='$post_num'";
+    
+    // 쿼리를 실행합니다.
+    $result = mysqli_query($conn, $query);
+    
+    // 쿼리 실행 결과에 따라 성공 또는 실패 메시지를 출력합니다.
+    if($result) {
+        echo "success";
+    } else {
+        echo "failed";
+    }
+    
+    // 연결을 닫습니다.
+    mysqli_close($conn);
+?>
+
+
+
+<comment 테이블>
+CREATE TABLE comment (
+    comment_num INT AUTO_INCREMENT PRIMARY KEY,
+    post_num INT NOT NULL,
+    comment_content VARCHAR(255) NOT NULL,
+    comment_writer VARCHAR(255) NOT NULL,
+    comment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_num) REFERENCES post(post_num)
+)DEFAULT CHARACTER SET utf8mb4;
+
+----------------------------------------------------------------------------
+
+-> addcomment.php
+
+<?php
+// 데이터베이스 연결 설정
+$servername = "localhost";
+$username = "root";
+$password = "1234";
+$database = "test";
+
+// MySQL 데이터베이스에 연결
+$conn = new mysqli($servername, $username, $password, $database);
+
+// 연결 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST로 전달된 데이터 가져오기
+$post_num = $_POST["post_num"];
+$comment_content = $_POST["comment_content"];
+$comment_writer = $_POST["comment_writer"];
+
+// 댓글 추가 쿼리 실행
+$sql = "INSERT INTO comment (post_num, comment_content, comment_writer) VALUES ('$post_num', '$comment_content', '$comment_writer')";
+
+if ($conn->query($sql) === TRUE) {
+    echo "Comment added successfully";
+} else {
+    echo "Error adding comment: " . $conn->error;
+}
+
+$conn->close();
+?>
+
+
+
+-> getcomments.php
+
+<?php
+// 데이터베이스 연결 설정
+$servername = "localhost";
+$username = "root";
+$password = "1234";
+$database = "test";
+
+// MySQL 데이터베이스에 연결
+$conn = new mysqli($servername, $username, $password, $database);
+
+// 연결 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// POST로 전달된 게시물 번호
+$post_num = $_POST["post_num"];
+
+// 댓글 데이터를 가져오는 쿼리
+$sql = "SELECT * FROM comment WHERE post_num = $post_num";
+
+$result = $conn->query($sql);
+
+// 쿼리 실행 결과를 JSON 형식으로 변환하여 반환
+if ($result->num_rows > 0) {
+    $response = array();
+    while ($row = $result->fetch_assoc()) {
+        $response[] = $row;
+    }
+    echo json_encode($response);
+} else {
+    echo "No comments found";
+}
+
+$conn->close();
+?>
+
+
+
+-> editcomment.php
+
+<?php
+// 데이터베이스 연결 설정
+$host = "localhost"; // 데이터베이스 호스트
+$username = "root"; // 데이터베이스 사용자 이름
+$password = "1234"; // 데이터베이스 비밀번호
+$database = "test"; // 사용할 데이터베이스 이름
+
+// MySQL 데이터베이스에 연결
+$connection = mysqli_connect($host, $username, $password, $database);
+
+// 연결 오류 확인
+if (mysqli_connect_errno()) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
+// POST 요청으로 전송된 데이터 가져오기
+$comment_num = $_POST['comment_num']; // 수정할 댓글의 번호
+$new_comment_content = $_POST['comment_content']; // 새로운 댓글 내용
+
+// 댓글 수정 쿼리 작성
+$query = "UPDATE comment SET comment_content = '$new_comment_content' WHERE comment_num = $comment_num";
+
+// 쿼리 실행
+$result = mysqli_query($connection, $query);
+
+// 쿼리 실행 결과에 따른 처리
+if ($result) {
+    // 쿼리가 성공적으로 실행되면 성공 응답 전송
+    echo "Comment updated successfully";
+} else {
+    // 쿼리 실행에 실패하면 오류 응답 전송
+    echo "Error updating comment: " . mysqli_error($connection);
+}
+
+// MySQL 연결 종료
+mysqli_close($connection);
+?>
+
+
+-> deletecomment.php
+
+<?php
+
+// 데이터베이스 연결 설정
+$servername = "localhost";
+$username = "root";
+$password = "1234";
+$dbname = "test";
+
+// POST 요청으로부터 댓글 번호 가져오기
+$comment_num = $_POST['comment_num'];
+
+// 데이터베이스 연결 생성
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// 연결 확인
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// 댓글 삭제 쿼리 작성
+$sql = "DELETE FROM comment WHERE comment_num = $comment_num";
+
+// 쿼리 실행 및 결과 확인
+if ($conn->query($sql) === TRUE) {
+    // 댓글 삭제 성공
+    echo "Comment deleted successfully";
+} else {
+    // 댓글 삭제 실패
+    echo "Error deleting comment: " . $conn->error;
+}
+
+// 데이터베이스 연결 종료
+$conn->close();
+
+?>
+
+
+
+
