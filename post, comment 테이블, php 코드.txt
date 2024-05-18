@@ -4,9 +4,9 @@ create table post (
 	board_type INT NOT NULL,
 	post_title varchar(255) NOT NULL,
 	post_content varchar(255) NOT NULL,
-    post_image LONGBLOB,
+	post_image LONGBLOB,
 	post_writer varchar(255) NOT NULL,
-	post_date varchar(255) NOT NULL
+	post_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) DEFAULT CHARACTER SET utf8mb4;
 
 -----------------------------------------------------------------
@@ -109,14 +109,13 @@ $board_type = $_POST['board_type'];
 $post_title = $_POST['post_title'];
 $post_content = $_POST['post_content'];
 $post_writer = $_POST['post_writer'];
-$post_date = $_POST['post_date'];
 
 //이미지 데이터 가져오기
 $image = $_FILES['image']['tmp_name'];
 $imageData = base64_encode(file_get_contents($image));
 
 // SQL 쿼리 생성 및 실행
-$query = "INSERT INTO post (board_type, post_title, post_content, post_image, post_writer, post_date) VALUES ('$board_type', '$post_title', '$post_content', '$imageData', '$post_writer', '$post_date')";
+$query = "INSERT INTO post (board_type, post_title, post_content, post_image, post_writer) VALUES ('$board_type', '$post_title', '$post_content', '$imageData', '$post_writer')";
 $result = mysqli_query($conn, $query);
 
 if($result)
@@ -146,10 +145,9 @@ $board_type = $_POST['board_type'];
 $post_title = $_POST['post_title'];
 $post_content = $_POST['post_content'];
 $post_writer = $_POST['post_writer'];
-$post_date = $_POST['post_date'];
 
 // SQL 쿼리 생성 및 실행
-$query = "INSERT INTO post (board_type, post_title, post_content, post_writer, post_date) VALUES ('$board_type', '$post_title', '$post_content', '$post_writer', '$post_date')";
+$query = "INSERT INTO post (board_type, post_title, post_content, post_writer) VALUES ('$board_type', '$post_title', '$post_content', '$post_writer')";
 $result = mysqli_query($conn, $query);
 
 if($result)
@@ -187,7 +185,11 @@ $image = $_FILES['image']['tmp_name'];
 $imageData = base64_encode(file_get_contents($image));
 
 // SQL 쿼리 작성
-$sql = "UPDATE post SET post_title='$post_title', post_content='$post_content', post_image='$imageData', post_date='$post_date' WHERE post_num='$post_num'";
+//$sql = "UPDATE post SET post_title='$post_title', post_content='$post_content', post_image='$imageData', post_date='$post_date' WHERE post_num='$post_num'";
+
+// SQL 쿼리 작성 (post_date는 CURRENT_TIMESTAMP로 설정)
+$sql = "UPDATE post SET post_title='$post_title', post_content='$post_content', post_image='$imageData', post_date=CURRENT_TIMESTAMP WHERE post_num='$post_num'";
+
 
 // 쿼리 실행 및 결과 확인
 if ($conn->query($sql) === TRUE) {
@@ -376,7 +378,11 @@ $comment_num = $_POST['comment_num']; // 수정할 댓글의 번호
 $new_comment_content = $_POST['comment_content']; // 새로운 댓글 내용
 
 // 댓글 수정 쿼리 작성
-$query = "UPDATE comment SET comment_content = '$new_comment_content' WHERE comment_num = $comment_num";
+//$query = "UPDATE comment SET comment_content = '$new_comment_content' WHERE comment_num = $comment_num";
+
+// 댓글 수정 쿼리 작성 (comment_date 도 함께 업데이트)
+$query = "UPDATE comment SET comment_content = '$new_comment_content', comment_date = CURRENT_TIMESTAMP WHERE comment_num = $comment_num";
+
 
 // 쿼리 실행
 $result = mysqli_query($connection, $query);
